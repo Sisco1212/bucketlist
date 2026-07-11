@@ -5,7 +5,7 @@ import { register } from "@/actions/auth";
 import { AuthState } from "@/types/auth";
 
 
-const Register = () => {
+const RegisterPage = () => {
 
 const initialState: AuthState = {
   success: false,
@@ -17,68 +17,38 @@ const [state, formAction, isPending] = useActionState(
   initialState
 );
 
-//     async function handleSubmit(
-//     e: React.SubmitEvent<HTMLFormElement>
-// ) {
-//     e.preventDefault();
-
-//     const result = await register({
-//     username,
-//     email,
-//     password,
-// });
-
-// setMessage(result.message);
-// }
-
   return (
     <>
         <h1 className="text-4xl text-black font-bold text-center mt-8">Register</h1>
 <div className="flex w-full h-screen justify-center items-center">
     
     <form action= {formAction}>
-        {/* <input 
-        type="text" 
-        placeholder="Enter your username" 
-            onChange={(e) =>
-        setUsername(e.target.value)
-    }
-        /> */}
 
         <input
     name="username"
     type="text"
+    className="border"
 />
 {state.errors?.username && (
   <p>{state.errors.username[0]}</p>
 )}
         <br />
-        {/* <input 
-        type="email" 
-        placeholder="Enter your email" 
-            onChange={(e) =>
-        setEmail(e.target.value)
-    }
-        /> */}
+
 
         <input
     name="email"
     type="email"
+    className="border"
 />
 {state.errors?.email && (
   <p>{state.errors.email[0]}</p>
 )}
         <br />
-        {/* <input 
-        type="password" 
-        placeholder="Enter your password" 
-            onChange={(e) =>
-        setPassword(e.target.value)
-    }
-        /> */}
+
         <input
     name="password"
     type="password"
+    className="border"
 />
 {state.errors?.password && (
   <p>{state.errors.password[0]}</p>
@@ -100,4 +70,4 @@ const [state, formAction, isPending] = useActionState(
   )
 }
 
-export default Register
+export default RegisterPage

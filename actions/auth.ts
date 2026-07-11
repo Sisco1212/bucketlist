@@ -5,28 +5,13 @@ import { AuthState } from "@/types/auth";
 import { registerSchema } from "@/lib/validations/auth";
 
 export async function register(
-  prevState: AuthState,
+  _prevState: AuthState,
   formData: FormData
 ): Promise<AuthState> {
   const supabase = await createSupabaseServerClient();
+const data = Object.fromEntries(formData);
+const validation = registerSchema.safeParse(data);
 
-  const username = formData.get("username") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-
-  const validation = registerSchema.safeParse({
-  username,
-  email,
-  password,
-});
-
-
-//   if (!username || !email || !password) {
-//     return {
-//       success: false,
-//       message: "All fields are required.",
-//     };
-//   }
 
 if (!validation.success) {
   return {
@@ -35,6 +20,8 @@ if (!validation.success) {
     errors: validation.error.flatten().fieldErrors,
   };
 }
+
+const { username, email, password } = validation.data;
 
   const { error } = await supabase.auth.signUp({
     email,
