@@ -3,6 +3,8 @@
 import { createSupabaseServerClient } from "@/lib/server";
 import { loginSchema } from "@/lib/validations/auth";
 import { AuthState } from "@/types/auth";
+import { redirect } from "next/navigation";
+
 
 export async function login(
     _prevState: AuthState,
@@ -34,14 +36,10 @@ await supabase.auth.signInWithPassword({
 if (error) {
     return {
       success: false,
-      message: error.message,
+      message: "Invalid email or password.",
     };
   }
 
-  return {
-    success: true,
-    message:
-      "Welcome back!",
-  };
+  redirect("/my-bucket");
 
 }

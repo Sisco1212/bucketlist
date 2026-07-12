@@ -9,34 +9,21 @@ export async function createSupabaseServerClient() {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
 
-        set(name, value, options) {
-          cookieStore.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-
-        remove(name, options) {
-          cookieStore.set({
-            name,
-            value: "",
-            ...options,
-          });
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Ignore when called from a Server Component.
+            // Middleware will handle refreshing cookies.
+          }
         },
       },
     }
   );
 }
-
-console.log(
-  process.env.NEXT_PUBLIC_SUPABASE_URL
-);
-
-console.log(
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-);
