@@ -1,0 +1,64 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createWishSchema } from "@/lib/validations/wish";
+import { createSupabaseServerClient } from "@/lib/server";
+import type { WishState } from "@/types/wish";
+
+
+export async function createWish(
+  _prevState: WishState,
+  formData: FormData
+) {
+
+    const validatedFields = createWishSchema.safeParse({
+  title: formData.get("title"),
+  description: formData.get("description"),
+});
+
+if (!validatedFields.success) {
+  return {
+    success: false,
+    message: "Please fix the errors below.",
+    errors: validatedFields.error.flatten().fieldErrors,
+  };
+}
+
+const supabase = await createSupabaseServerClient();
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+if (!user) {
+  return {
+    success: false,
+    message: "You must be logged in.",
+  };
+}
+
+const { title, description } = validatedFields.data;
+
+const { error } = await supabase
+  .from("wishes")
+  .insert({
+    title,
+    description,
+    user_id: user.id,
+  });
+
+  if (error) {
+  return {
+    success: false,
+    message: "Something went wrong. Please try again.",
+  };
+}
+
+revalidatePath("/my-bucket");
+
+return {
+  success: true,
+  message: "Wish added successfully!",
+};
+
+}
