@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createWishSchema } from "@/lib/validations/wish";
 import { createSupabaseServerClient } from "@/lib/server";
 import type { WishState } from "@/types/wish";
+import { updateWishStatusSchema } from "@/lib/validations/wish";
 
 
 export async function createWish(
@@ -61,4 +62,58 @@ return {
   message: "Wish added successfully!",
 };
 
+}
+
+export async function updateWishStatus(
+  _prevState: WishState,
+  formData: FormData
+) {
+  const validatedFields = updateWishStatusSchema.safeParse({
+    id: formData.get("id"),
+    status: formData.get("status"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message: "Please select a valid status.",
+    };
+  }
+
+  const { id, status } = validatedFields.data;
+
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      message: "You must be logged in.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("wishes")
+    .update({
+      status,
+    })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return {
+      success: false,
+      message: "Failed to update wish status.",
+    };
+  }
+
+  revalidatePath("/my-bucket");
+
+  return {
+    success: true,
+    message: "Status updated successfully!",
+  };
 }

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { WISH_STATUS_VALUES } from "@/lib/constants/wish-status";
+
 
 export const createWishSchema = z.object({
   title: z
@@ -17,3 +19,10 @@ export const createWishSchema = z.object({
 });
 
 export type CreateWishInput = z.infer<typeof createWishSchema>;
+
+
+export const updateWishStatusSchema = z.object({
+  id: z.uuid("Invalid wish ID."),
+
+  status: z.enum(WISH_STATUS_VALUES)
+});

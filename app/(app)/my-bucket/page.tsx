@@ -1,5 +1,6 @@
 import LogoutButton from "@/components/ui/LogoutButton"
 import WishForm from "@/components/ui/WishForm"
+import WishList from "@/components/ui/WishList";
 import { getWishes } from "@/lib/queries/wishes";
 
 const BucketPage = async () => {
@@ -16,12 +17,7 @@ const BucketPage = async () => {
         My Wishes
       </h2>
 
-      {wishes.map((wish) => (
-        <div key={wish.id}>
-          <p>{wish.title}</p>
-          <p>{wish.description}</p>
-        </div>
-      ))}
+  <WishList wishes={wishes} />
 
 
         <LogoutButton />
