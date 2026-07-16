@@ -1,6 +1,6 @@
 import type { Wish } from "@/types/wish";
 
-import WishCard from "./WishCard";
+import WishCard from "./wishes/WishCard";
 
 type WishListProps = {
   wishes: Wish[];

@@ -30,3 +30,17 @@ export const updateWishStatusSchema = z.object({
 export const deleteWishSchema = z.object({
   id: z.uuid("Invalid wish ID."),
 });
+
+export const updateWishSchema = z.object({
+  id: z.uuid("Invalid wish ID."),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Title is required.")
+    .max(100, "Title cannot exceed 100 characters."),
+  description: z
+    .string()
+    .trim()
+    .max(500, "Description cannot exceed 500 characters.")
+    .optional(),
+});

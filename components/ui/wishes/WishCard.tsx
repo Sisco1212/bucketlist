@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { Wish } from "@/types/wish";
 import { WISH_STATUSES } from "@/lib/constants/wish-status";
 import type { WishStatus } from "@/lib/constants/wish-status";
-import { updateWishStatus, deleteWish } from "@/actions/wishes";
+import { updateWishStatus, deleteWish, updateWish  } from "@/actions/wishes";
 
 type WishCardProps = {
   wish: Wish;
@@ -12,13 +12,22 @@ type WishCardProps = {
 const WishCard = ({ wish }: WishCardProps) => {
 
 const [status, setStatus] = useState(wish.status);
-const [loading, setLoading] = useState({
+const [ui, setUi] = useState({
+  editing: false,
   updating: false,
   deleting: false,
 });
+const [title, setTitle] = useState(wish.title);
+
+const [description, setDescription] = useState(
+  wish.description ?? ""
+);
+
     return (
     <div className="border rounded-lg p-4 space-y-3">
-      <div>
+
+      {!ui.editing ? (
+  <div>
         <h3 className="text-xl font-semibold">
           {wish.title}
         </h3>
@@ -29,18 +38,85 @@ const [loading, setLoading] = useState({
           </p>
         )}
       </div>
+) : (
+  <div className="space-y-2">
+  <input
+    value={title}
+    onChange={(e) => setTitle(e.target.value)}
+  />
+
+  <textarea
+    value={description}
+    onChange={(e) =>
+      setDescription(e.target.value)
+    }
+  />
+
+  <div className="flex gap-2">
+    <button
+  type="button"
+  disabled={ui.updating || ui.deleting}
+  onClick={async () => {
+    setUi((prev) => ({
+      ...prev,
+      updating: true,
+    }));
+
+    try {
+      const result = await updateWish({
+        id: wish.id,
+        title,
+        description,
+      });
+
+      if (result.success) {
+        setUi((prev) => ({
+          ...prev,
+          editing: false,
+        }));
+      }
+    } finally {
+      setUi((prev) => ({
+        ...prev,
+        updating: false,
+      }));
+    }
+  }}
+>
+  {ui.updating ? "Saving..." : "Save"}
+</button>
+
+    <button
+      type="button"
+      onClick={() => {
+        setTitle(wish.title);
+        setDescription(
+          wish.description ?? ""
+        );
+
+        setUi((prev) => ({
+          ...prev,
+          editing: false,
+        }));
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+</div>
+)}
 
 <select
   name="status"
   value={status}
-  disabled={loading.updating || loading.deleting}
+  disabled={ui.updating || ui.deleting}
   onChange={async (e) => {
     const newStatus = e.target.value as WishStatus;
     const previousStatus = status;
 
     setStatus(newStatus);
 
-    setLoading((prev) => ({
+    setUi((prev) => ({
       ...prev,
       updating: true,
     }));
@@ -50,7 +126,7 @@ const [loading, setLoading] = useState({
     } catch {
   setStatus(previousStatus);
 } finally {
-      setLoading((prev) => ({
+      setUi((prev) => ({
         ...prev,
         updating: false,
       }));
@@ -68,10 +144,20 @@ const [loading, setLoading] = useState({
 </select>
 
       <div className="flex gap-2">
-        <button>Edit</button>
+        <button
+  disabled={ui.updating || ui.deleting}
+  onClick={() =>
+    setUi((prev) => ({
+      ...prev,
+      editing: true,
+    }))
+  }
+>
+  Edit
+</button>
 
         <button
-  disabled={loading.updating || loading.deleting}
+  disabled={ui.updating || ui.deleting}
   className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50"
   onClick={async () => {
   const confirmed = window.confirm(
@@ -80,7 +166,7 @@ const [loading, setLoading] = useState({
 
   if (!confirmed) return;
 
-  setLoading((prev) => ({
+  setUi((prev) => ({
     ...prev,
     deleting: true,
   }));
@@ -88,14 +174,14 @@ const [loading, setLoading] = useState({
   try {
     await deleteWish(wish.id);
   } finally {
-    setLoading((prev) => ({
+    setUi((prev) => ({
       ...prev,
       deleting: false,
     }));
   }
 }}
 >
-  {loading.deleting ? "Deleting..." : "Delete"}
+  {ui.deleting ? "Deleting..." : "Delete"}
 </button>
       </div>
     </div>

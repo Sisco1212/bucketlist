@@ -10,9 +10,6 @@ const initialState: WishState = {
   message: "",
 };
 
-
-
-
 const WishForm = () => {
 
     const [state, formAction, isPending] = useActionState(
