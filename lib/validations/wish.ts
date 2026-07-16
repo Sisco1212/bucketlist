@@ -26,3 +26,7 @@ export const updateWishStatusSchema = z.object({
 
   status: z.enum(WISH_STATUS_VALUES)
 });
+
+export const deleteWishSchema = z.object({
+  id: z.uuid("Invalid wish ID."),
+});

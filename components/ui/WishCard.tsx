@@ -3,40 +3,19 @@ import { useState } from "react";
 import type { Wish } from "@/types/wish";
 import { WISH_STATUSES } from "@/lib/constants/wish-status";
 import type { WishStatus } from "@/lib/constants/wish-status";
-import { useActionState, useRef } from "react";
-import { updateWishStatus } from "@/actions/wishes";
-import type { WishState } from "@/types/wish";
-
-
-const initialState: WishState = {
-  success: false,
-  message: "",
-};
+import { updateWishStatus, deleteWish } from "@/actions/wishes";
 
 type WishCardProps = {
   wish: Wish;
 };
 
 const WishCard = ({ wish }: WishCardProps) => {
-  
-    const [status, setStatus] = useState(() => {
-  console.log("INITIAL STATUS:", wish.status);
-  return wish.status;
+
+const [status, setStatus] = useState(wish.status);
+const [loading, setLoading] = useState({
+  updating: false,
+  deleting: false,
 });
-
-console.log("PROP STATUS:", wish.status);
-console.log("LOCAL STATUS:", status);
-
-
-// const [status, setStatus] = useState(wish.status);
-
-const [state, formAction, isPending] = useActionState(
-  updateWishStatus,
-  initialState
-);
-
-const formRef = useRef<HTMLFormElement>(null);
-
     return (
     <div className="border rounded-lg p-4 space-y-3">
       <div>
@@ -51,23 +30,31 @@ const formRef = useRef<HTMLFormElement>(null);
         )}
       </div>
 
-      <form
-  ref={formRef}
-  action={formAction}
->
-<input
-  type="hidden"
-  name="id"
-  value={wish.id}
-/>
-
 <select
   name="status"
   value={status}
-  disabled={isPending}
-  onChange={(e) => {
-    setStatus(e.target.value as WishStatus);
-    formRef.current?.requestSubmit();
+  disabled={loading.updating || loading.deleting}
+  onChange={async (e) => {
+    const newStatus = e.target.value as WishStatus;
+    const previousStatus = status;
+
+    setStatus(newStatus);
+
+    setLoading((prev) => ({
+      ...prev,
+      updating: true,
+    }));
+
+    try {
+      await updateWishStatus(wish.id, newStatus);
+    } catch {
+  setStatus(previousStatus);
+} finally {
+      setLoading((prev) => ({
+        ...prev,
+        updating: false,
+      }));
+    }
   }}
 >
   {WISH_STATUSES.map((status) => (
@@ -79,12 +66,37 @@ const formRef = useRef<HTMLFormElement>(null);
     </option>
   ))}
 </select>
-      </form>
 
       <div className="flex gap-2">
         <button>Edit</button>
 
-        <button>Delete</button>
+        <button
+  disabled={loading.updating || loading.deleting}
+  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50"
+  onClick={async () => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this wish?"
+  );
+
+  if (!confirmed) return;
+
+  setLoading((prev) => ({
+    ...prev,
+    deleting: true,
+  }));
+
+  try {
+    await deleteWish(wish.id);
+  } finally {
+    setLoading((prev) => ({
+      ...prev,
+      deleting: false,
+    }));
+  }
+}}
+>
+  {loading.deleting ? "Deleting..." : "Delete"}
+</button>
       </div>
     </div>
   );
