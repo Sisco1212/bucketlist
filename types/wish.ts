@@ -14,4 +14,6 @@ export interface Wish {
   status:WishStatus;
   created_at: string;
   updated_at: string;
+  is_public: boolean;
+  copied_from: string | null;
 }

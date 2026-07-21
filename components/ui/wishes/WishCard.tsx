@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type { Wish } from "@/types/wish";
 import type { WishStatus } from "@/lib/constants/wish-status";
-import { updateWishStatus, deleteWish, updateWish  } from "@/actions/wishes";
+import { updateWishStatus, deleteWish, updateWish, shareWish  } from "@/actions/wishes";
 import WishEditForm from "./WishEditForm";
 import WishStatusSelect from "./WishStatusSelect";
 import WishActions from "./WishActions";
@@ -25,6 +25,8 @@ const [title, setTitle] = useState(wish.title);
 const [description, setDescription] = useState(
   wish.description ?? ""
 );
+
+const [isPublic, setIsPublic] = useState(wish.is_public);
 
 const handleSave = async () => {
  setUi((prev) => ({
@@ -117,6 +119,35 @@ const handleDelete = async () => {
   }
 }
 
+async function handleShare() {
+  const nextValue = !isPublic;
+
+  setIsPublic(nextValue);
+
+  setUi((prev) => ({
+    ...prev,
+    updating: true,
+  }));
+
+  try {
+    const result = await shareWish(
+      wish.id,
+      nextValue
+    );
+
+    if (!result.success) {
+      setIsPublic(!nextValue);
+    }
+  } catch {
+    setIsPublic(!nextValue);
+  } finally {
+    setUi((prev) => ({
+      ...prev,
+      updating: false,
+    }));
+  }
+}
+
     return (
     <div className="border rounded-lg p-4 space-y-3">
 
@@ -151,6 +182,15 @@ const handleDelete = async () => {
     onEdit={handleEdit}
     onDelete={handleDelete}
       />
+
+      <button
+  disabled={ui.updating || ui.deleting}
+  onClick={handleShare}
+>
+  {isPublic
+    ? "🙈 Remove from Feed"
+    : "🌍 Share to Feed"}
+</button>
     </div>
   );
 };

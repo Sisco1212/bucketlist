@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createWishSchema, updateWishSchema, deleteWishSchema, updateWishStatusSchema} from "@/lib/validations/wish";
+import { createWishSchema, updateWishSchema, deleteWishSchema, updateWishStatusSchema, shareWishSchema} from "@/lib/validations/wish";
 import { createSupabaseServerClient } from "@/lib/server";
 import type { WishState } from "@/types/wish";
 import { WishStatus } from "@/lib/constants/wish-status";
@@ -216,5 +216,60 @@ export async function updateWish(data: {
   return {
     success: true,
     message: "Wish updated successfully!",
+  };
+}
+
+export async function shareWish(
+  wishId: string,
+  isPublic: boolean
+) {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      message: "Unauthorized.",
+    };
+  }
+
+  const validated = shareWishSchema.safeParse({
+  id: wishId,
+  isPublic,
+});
+
+if (!validated.success) {
+  return {
+    success: false,
+    message: "Invalid data.",
+  };
+}
+
+  const { error } = await supabase
+    .from("wishes")
+    .update({
+      is_public: isPublic,
+    })
+    .eq("id", wishId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+
+  revalidatePath("/my-bucket");
+  revalidatePath("/feed");
+
+  return {
+    success: true,
+    message: isPublic
+      ? "Wish shared successfully."
+      : "Wish removed from feed.",
   };
 }

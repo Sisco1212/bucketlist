@@ -44,3 +44,8 @@ export const updateWishSchema = z.object({
     .max(500, "Description cannot exceed 500 characters.")
     .optional(),
 });
+
+export const shareWishSchema = z.object({
+  id: z.uuid(),
+  isPublic: z.boolean(),
+});
