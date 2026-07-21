@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
 import type { Wish } from "@/types/wish";
-import { WISH_STATUSES } from "@/lib/constants/wish-status";
 import type { WishStatus } from "@/lib/constants/wish-status";
 import { updateWishStatus, deleteWish, updateWish  } from "@/actions/wishes";
+import WishEditForm from "./WishEditForm";
+import WishStatusSelect from "./WishStatusSelect";
+import WishActions from "./WishActions";
+import WishContent from "./WishContent";
 
 type WishCardProps = {
   wish: Wish;
@@ -23,143 +26,76 @@ const [description, setDescription] = useState(
   wish.description ?? ""
 );
 
-    return (
-    <div className="border rounded-lg p-4 space-y-3">
+const handleSave = async () => {
+ setUi((prev) => ({
+         ...prev,
+         updating: true,
+       }));
+   
+       try {
+         const result = await updateWish({
+           id: wish.id,
+           title,
+           description,
+         });
+   
+         if (result.success) {
+           setUi((prev) => ({
+             ...prev,
+             editing: false,
+           }));
+         }
+       } finally {
+         setUi((prev) => ({
+           ...prev,
+           updating: false,
+         }));
+       }
+}
 
-      {!ui.editing ? (
-  <div>
-        <h3 className="text-xl font-semibold">
-          {wish.title}
-        </h3>
+const handleCancel = () => { 
+ setTitle(wish.title);
+           setDescription(
+             wish.description ?? ""
+           );
+   
+           setUi((prev) => ({
+             ...prev,
+             editing: false,
+           }));
+}
 
-        {wish.description && (
-          <p className="text-gray-600">
-            {wish.description}
-          </p>
-        )}
-      </div>
-) : (
-  <div className="space-y-2">
-  <input
-    value={title}
-    onChange={(e) => setTitle(e.target.value)}
-  />
-
-  <textarea
-    value={description}
-    onChange={(e) =>
-      setDescription(e.target.value)
-    }
-  />
-
-  <div className="flex gap-2">
-    <button
-  type="button"
-  disabled={ui.updating || ui.deleting}
-  onClick={async () => {
-    setUi((prev) => ({
-      ...prev,
-      updating: true,
-    }));
-
-    try {
-      const result = await updateWish({
-        id: wish.id,
-        title,
-        description,
-      });
-
-      if (result.success) {
+const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => { 
+ const newStatus = e.target.value as WishStatus;
+        const previousStatus = status;
+    
+        setStatus(newStatus);
+    
         setUi((prev) => ({
           ...prev,
-          editing: false,
+          updating: true,
         }));
-      }
+    
+        try {
+          await updateWishStatus(wish.id, newStatus);
+        } catch {
+      setStatus(previousStatus);
     } finally {
-      setUi((prev) => ({
-        ...prev,
-        updating: false,
-      }));
-    }
-  }}
->
-  {ui.updating ? "Saving..." : "Save"}
-</button>
+          setUi((prev) => ({
+            ...prev,
+            updating: false,
+          }));
+        }
+}
 
-    <button
-      type="button"
-      onClick={() => {
-        setTitle(wish.title);
-        setDescription(
-          wish.description ?? ""
-        );
-
-        setUi((prev) => ({
-          ...prev,
-          editing: false,
-        }));
-      }}
-    >
-      Cancel
-    </button>
-  </div>
-</div>
-)}
-
-<select
-  name="status"
-  value={status}
-  disabled={ui.updating || ui.deleting}
-  onChange={async (e) => {
-    const newStatus = e.target.value as WishStatus;
-    const previousStatus = status;
-
-    setStatus(newStatus);
-
-    setUi((prev) => ({
-      ...prev,
-      updating: true,
-    }));
-
-    try {
-      await updateWishStatus(wish.id, newStatus);
-    } catch {
-  setStatus(previousStatus);
-} finally {
-      setUi((prev) => ({
-        ...prev,
-        updating: false,
-      }));
-    }
-  }}
->
-  {WISH_STATUSES.map((status) => (
-    <option
-      key={status.value}
-      value={status.value}
-    >
-      {status.emoji} {status.label}
-    </option>
-  ))}
-</select>
-
-      <div className="flex gap-2">
-        <button
-  disabled={ui.updating || ui.deleting}
-  onClick={() =>
-    setUi((prev) => ({
+const handleEdit = () => { 
+  setUi((prev) => ({
       ...prev,
       editing: true,
     }))
-  }
->
-  Edit
-</button>
+}
 
-        <button
-  disabled={ui.updating || ui.deleting}
-  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:opacity-50"
-  onClick={async () => {
+const handleDelete = async () => { 
   const confirmed = window.confirm(
     "Are you sure you want to delete this wish?"
   );
@@ -179,11 +115,42 @@ const [description, setDescription] = useState(
       deleting: false,
     }));
   }
-}}
->
-  {ui.deleting ? "Deleting..." : "Delete"}
-</button>
-      </div>
+}
+
+    return (
+    <div className="border rounded-lg p-4 space-y-3">
+
+      {!ui.editing ? (
+        <WishContent 
+    title={title}
+    description={description}
+        />
+) : (
+  <WishEditForm
+     title={title}
+    description={description}
+    updating={ui.updating}
+    deleting={ui.deleting}
+    onTitleChange={setTitle}
+    onDescriptionChange={setDescription}
+    onSave={handleSave}
+    onCancel={handleCancel}
+  />
+)}
+
+<WishStatusSelect
+    status={status}
+    disabled={ui.updating || ui.deleting}
+    onChange={handleStatusChange}
+/>
+
+      <WishActions 
+       updating={ui.updating}
+    deleting={ui.deleting}
+    editing={ui.editing}
+    onEdit={handleEdit}
+    onDelete={handleDelete}
+      />
     </div>
   );
 };
