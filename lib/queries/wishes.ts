@@ -16,6 +16,7 @@ export async function getWishes() {
  const { data, error } = await supabase
   .from("wishes")
   .select("*")
+  .eq("user_id", user.id)
   .order("created_at", {
     ascending: false });
 
