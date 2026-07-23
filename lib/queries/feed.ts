@@ -7,10 +7,13 @@ export async function getPublicWishes() {
 
   const { data: wishes, error } = await supabase
     .from("wishes")
-    .select(`
+.select(`
   *,
   profiles (
     username
+  ),
+  wish_cheers (
+    user_id
   )
 `)
     .eq("is_public", true)

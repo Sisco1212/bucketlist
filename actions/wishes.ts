@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createWishSchema, updateWishSchema, deleteWishSchema, updateWishStatusSchema, shareWishSchema} from "@/lib/validations/wish";
+import { createWishSchema, updateWishSchema, deleteWishSchema, updateWishStatusSchema, shareWishSchema, toggleWishCheerSchema} from "@/lib/validations/wish";
 import { createSupabaseServerClient } from "@/lib/server";
 import type { WishState } from "@/types/wish";
 import { WishStatus } from "@/lib/constants/wish-status";
@@ -272,4 +272,89 @@ if (!validated.success) {
       ? "Wish shared successfully."
       : "Wish removed from feed.",
   };
+}
+
+export async function toggleWishCheer(
+  wishId: string
+) {
+
+  const validation =
+  toggleWishCheerSchema.safeParse({
+    wishId,
+  });
+
+if (!validation.success) {
+  return {
+    success: false,
+    message: "Invalid wish.",
+  };
+}
+
+const supabase =
+  await createSupabaseServerClient();
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+if (!user) {
+  return {
+    success: false,
+    message: "Unauthorized.",
+  };
+}
+
+const { data: existingCheer } =
+  await supabase
+    .from("wish_cheers")
+    .select("id")
+    .eq("wish_id", wishId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+
+    if(existingCheer) {
+     const { error: deleteError } = await supabase
+    .from("wish_cheers")
+    .delete()
+    .eq("id", existingCheer.id);
+      
+    if (deleteError) {
+      return {
+        success: false,
+        message: deleteError.message,
+      };
+    }
+
+    return {
+    success: true,
+    cheered: false,
+  }
+    }
+
+const { error: insertError } = await supabase
+  .from("wish_cheers")
+  .insert({
+    wish_id: wishId,
+    user_id: user.id,
+  });
+
+if (insertError) {
+  return {
+    success: false,
+    message: insertError.message,
+  };
+}
+
+  revalidatePath("/feed");
+
+return {
+  success: true,
+  message: existingCheer
+    ? "Cheer removed."
+    : "Wish cheered.",
+};
+
+
+
 }

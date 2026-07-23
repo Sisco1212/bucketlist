@@ -1,34 +1,33 @@
-
-import FeedCard from "@/components/ui/FeedCard"
-import { getPublicWishes } from "@/lib/queries/feed"
-// import type { FeedWish } from "@/types/feed";
-
+import FeedList from "@/components/ui/FeedList";
+import { getPublicWishes } from "@/lib/queries/feed";
+import { createSupabaseServerClient } from "@/lib/server";
 
 export default async function FeedPage() {
- 
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const wishes = await getPublicWishes();
 
-if (wishes.length === 0) {
+  if (wishes.length === 0) {
     return (
       <p>
-        Your bucket list is empty.
+        No public wishes yet.
       </p>
     );
   }
 
   return (
-    <main className="max-w-4xl mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">
-        Public Bucket List
-      </h1>
-      <div className="space-y-4">
-  {wishes.map((wish) => (
-    <FeedCard
-      key={wish.id}
-      wish={wish}
+   <>
+   
+   <FeedList
+      wishes={wishes}
+      currentUserId={user?.id ?? null}
     />
-  ))}
-</div>
-    </main>
+    <pre>{JSON.stringify(wishes, null, 2)}</pre>
+   </> 
+    
   );
 }

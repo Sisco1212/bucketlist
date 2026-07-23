@@ -49,3 +49,7 @@ export const shareWishSchema = z.object({
   id: z.uuid(),
   isPublic: z.boolean(),
 });
+
+export const toggleWishCheerSchema = z.object({
+  wishId: z.uuid(),
+});
