@@ -16,4 +16,9 @@ export interface Wish {
   updated_at: string;
   is_public: boolean;
   copied_from: string | null;
+  original: {
+  profiles: {
+    username: string;
+  };
+} | null;
 }

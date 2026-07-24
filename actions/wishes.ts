@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createWishSchema, updateWishSchema, deleteWishSchema, updateWishStatusSchema, shareWishSchema, toggleWishCheerSchema} from "@/lib/validations/wish";
+import { createWishSchema, updateWishSchema, deleteWishSchema, updateWishStatusSchema, shareWishSchema, toggleWishCheerSchema, copyWishSchema} from "@/lib/validations/wish";
 import { createSupabaseServerClient } from "@/lib/server";
 import type { WishState } from "@/types/wish";
 import { WishStatus } from "@/lib/constants/wish-status";
@@ -359,6 +359,101 @@ return {
     : "Wish cheered.",
 };
 
+}
 
+export async function copyWish(
+  wishId: string
+) {
+  const validation = copyWishSchema.safeParse({
+    wishId,
+  });
 
+  if (!validation.success) {
+    return {
+      success: false,
+      message: "Invalid wish.",
+    };
+  }
+
+  const supabase =
+    await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      message: "Unauthorized.",
+    };
+  }
+
+  // Get the original wish
+  const {
+    data: originalWish,
+    error: originalWishError,
+  } = await supabase
+    .from("wishes")
+    .select("*")
+    .eq("id", wishId)
+    .single();
+
+  if (originalWishError || !originalWish) {
+    return {
+      success: false,
+      message: "Wish not found.",
+    };
+  }
+
+  // Prevent duplicate copies
+  const {
+    data: existingWish,
+    error: existingWishError,
+  } = await supabase
+    .from("wishes")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("copied_from", wishId)
+    .maybeSingle();
+
+  if (existingWishError) {
+    return {
+      success: false,
+      message: existingWishError.message,
+    };
+  }
+
+  if (existingWish) {
+    return {
+      success: false,
+      message: "You've already added this wish.",
+    };
+  }
+
+  const { error: insertError } =
+    await supabase
+      .from("wishes")
+      .insert({
+        user_id: user.id,
+        title: originalWish.title,
+        description:
+          originalWish.description,
+        status: "dreaming",
+        copied_from: originalWish.id,
+        is_public: false,
+      });
+
+  if (insertError) {
+    return {
+      success: false,
+      message: insertError.message,
+    };
+  }
+
+  return {
+    success: true,
+    message:
+      "Wish added to your bucket!",
+  };
 }

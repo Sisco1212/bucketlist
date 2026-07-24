@@ -53,3 +53,7 @@ export const shareWishSchema = z.object({
 export const toggleWishCheerSchema = z.object({
   wishId: z.uuid(),
 });
+
+export const copyWishSchema = z.object({
+  wishId: z.uuid(),
+});

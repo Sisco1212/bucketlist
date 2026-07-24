@@ -191,6 +191,11 @@ async function handleShare() {
     ? "🙈 Remove from Feed"
     : "🌍 Share to Feed"}
 </button>
+{wish.original && (
+  <p className="text-sm text-gray-500 italic">
+    Inspired by @{wish.original.profiles.username}
+  </p>
+)}
     </div>
   );
 };

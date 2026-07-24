@@ -2,6 +2,8 @@
 import type { FeedWish } from "@/types/feed";
 import { useState } from "react";
 import { toggleWishCheer } from "@/actions/wishes";
+import { copyWish  } from "@/actions/wishes";
+
 
 type FeedCardProps = {
   wish: FeedWish;
@@ -26,6 +28,54 @@ const [hasCheered, setHasCheered] = useState(
 );
 
 const [isUpdating, setIsUpdating] = useState(false);
+const [copied, setCopied] = useState(false);
+
+const [copying, setCopying] = useState(false);
+
+const handleToggleCheer = async() => {
+ const previousCheered = hasCheered;
+const previousCount = cheerCount;
+
+setIsUpdating(true);
+
+if (hasCheered) {
+  setHasCheered(false);
+  setCheerCount((count) => count - 1);
+} else {
+  setHasCheered(true);
+  setCheerCount((count) => count + 1);
+}
+
+try {
+  const result = await toggleWishCheer(wish.id);
+
+  if (!result.success) {
+    throw new Error(result.message);
+  }
+} catch {
+  setHasCheered(previousCheered);
+  setCheerCount(previousCount);
+} finally {
+  setIsUpdating(false);
+}
+}
+
+const handleCopyWish = async () => {
+  setCopying(true);
+
+  try {
+    const result = await copyWish(wish.id);
+
+    if (!result.success) {
+      alert(result.message);
+      return;
+    }
+
+    setCopied(true);
+  } finally {
+    setCopying(false);
+  }
+};
 
 console.log(wish.wish_cheers);
 
@@ -55,35 +105,22 @@ console.log(wish.wish_cheers);
 <button
   type="button"
   disabled={isUpdating}
-  onClick={async () => {
-    const previousCheered = hasCheered;
-const previousCount = cheerCount;
-
-setIsUpdating(true);
-
-if (hasCheered) {
-  setHasCheered(false);
-  setCheerCount((count) => count - 1);
-} else {
-  setHasCheered(true);
-  setCheerCount((count) => count + 1);
-}
-
-try {
-  const result = await toggleWishCheer(wish.id);
-
-  if (!result.success) {
-    throw new Error(result.message);
-  }
-} catch {
-  setHasCheered(previousCheered);
-  setCheerCount(previousCount);
-} finally {
-  setIsUpdating(false);
-}
-  }}
+  onClick={handleToggleCheer}
 >
   🪣 {hasCheered ? "Cheered" : "Cheer"} ({cheerCount})
+</button>
+
+<button
+  type="button"
+  disabled={copying || copied}
+  onClick={handleCopyWish}
+  className="flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+>
+  {copying
+    ? "Adding..."
+    : copied
+    ? "✔ Added"
+    : "➕ Add to My Bucket"}
 </button>
 
     </div>
