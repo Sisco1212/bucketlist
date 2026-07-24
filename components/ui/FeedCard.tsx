@@ -13,9 +13,7 @@ export default function FeedCard({
   currentUserId,
 }: FeedCardProps) {
     
-const initialCheers = Array.isArray(wish.wish_cheers)
-  ? wish.wish_cheers
-  : [];
+const initialCheers = wish.wish_cheers ?? [];
   
 const [cheerCount, setCheerCount] = useState(
   initialCheers.length

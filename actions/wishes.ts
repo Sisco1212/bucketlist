@@ -314,17 +314,19 @@ const { data: existingCheer } =
 
 
     if(existingCheer) {
-     const { error: deleteError } = await supabase
-    .from("wish_cheers")
-    .delete()
-    .eq("id", existingCheer.id);
-      
-    if (deleteError) {
-      return {
-        success: false,
-        message: deleteError.message,
-      };
-    }
+const { error: deleteError } = await supabase
+  .from("wish_cheers")
+  .delete()
+  .eq("id", existingCheer.id);
+
+if (deleteError) {
+  console.error(deleteError);
+
+  return {
+    success: false,
+    message: deleteError.message,
+  };
+}
 
     return {
     success: true,
@@ -340,6 +342,8 @@ const { error: insertError } = await supabase
   });
 
 if (insertError) {
+  console.error(insertError);
+
   return {
     success: false,
     message: insertError.message,

@@ -12,7 +12,7 @@ export async function getPublicWishes() {
   profiles (
     username
   ),
-  wish_cheers (
+  wish_cheers!wish_cheers_wish_id_fkey (
     user_id
   )
 `)
