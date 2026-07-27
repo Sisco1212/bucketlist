@@ -7,4 +7,7 @@ export type FeedWish = Wish & {
 wish_cheers: {
   user_id: string;
 }[];
+hasCopied: boolean;
+inspiredBy: string | null;
+isOwner: boolean;
 };

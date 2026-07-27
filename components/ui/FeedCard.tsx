@@ -28,7 +28,9 @@ const [hasCheered, setHasCheered] = useState(
 );
 
 const [isUpdating, setIsUpdating] = useState(false);
-const [copied, setCopied] = useState(false);
+const [copied, setCopied] = useState(
+  wish.hasCopied
+);
 
 const [copying, setCopying] = useState(false);
 
@@ -81,9 +83,15 @@ console.log(wish.wish_cheers);
 
   return (
     <div className="border rounded-lg p-4 space-y-2">
-      <p className="text-sm text-gray-500">
-        @{wish.profiles.username}
-      </p>
+     <p className="text-sm text-gray-500">
+  @{wish.profiles.username}
+</p>
+
+{wish.inspiredBy && (
+  <p className="text-sm italic text-gray-500">
+    Inspired by @{wish.inspiredBy}
+  </p>
+)}
 
       <h2 className="text-xl font-semibold">
         {wish.title}
@@ -110,6 +118,7 @@ console.log(wish.wish_cheers);
   🪣 {hasCheered ? "Cheered" : "Cheer"} ({cheerCount})
 </button>
 
+{!wish.isOwner && (
 <button
   type="button"
   disabled={copying || copied}
@@ -122,6 +131,7 @@ console.log(wish.wish_cheers);
     ? "✔ Added"
     : "➕ Add to My Bucket"}
 </button>
+)}
 
     </div>
   );

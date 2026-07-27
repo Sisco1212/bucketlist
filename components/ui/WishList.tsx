@@ -3,7 +3,9 @@ import type { Wish } from "@/types/wish";
 import WishCard from "./wishes/WishCard";
 
 type WishListProps = {
-  wishes: Wish[];
+  wishes: (Wish & {
+    inspiredBy: string | null;
+  })[];
 };
 
 const WishList = ({ wishes }: WishListProps) => {

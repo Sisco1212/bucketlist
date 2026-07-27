@@ -9,7 +9,9 @@ import WishActions from "./WishActions";
 import WishContent from "./WishContent";
 
 type WishCardProps = {
-  wish: Wish;
+  wish: Wish & {
+    inspiredBy: string | null;
+  };
 };
 
 const WishCard = ({ wish }: WishCardProps) => {
@@ -148,6 +150,8 @@ async function handleShare() {
   }
 }
 
+console.log(wish);
+
     return (
     <div className="border rounded-lg p-4 space-y-3">
 
@@ -191,11 +195,12 @@ async function handleShare() {
     ? "🙈 Remove from Feed"
     : "🌍 Share to Feed"}
 </button>
-{wish.original && (
-  <p className="text-sm text-gray-500 italic">
-    Inspired by @{wish.original.profiles.username}
+{wish.inspiredBy && (
+  <p className="text-sm italic text-gray-500">
+    Inspired by @{wish.inspiredBy}
   </p>
 )}
+
     </div>
   );
 };

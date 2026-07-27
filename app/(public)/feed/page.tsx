@@ -9,7 +9,7 @@ export default async function FeedPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const wishes = await getPublicWishes();
+  const wishes = await getPublicWishes(user?.id ?? null);
 
   if (wishes.length === 0) {
     return (
